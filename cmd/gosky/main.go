@@ -34,10 +34,9 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 
+	cbor "github.com/fxamacker/cbor/v2"
+
 	logging "github.com/ipfs/go-log"
-	"github.com/polydawn/refmt/cbor"
-	rejson "github.com/polydawn/refmt/json"
-	"github.com/polydawn/refmt/shared"
 	cli "github.com/urfave/cli/v2"
 )
 
@@ -807,16 +806,18 @@ func cborToJson(data []byte) ([]byte, error) {
 			fmt.Printf("bad blob: %x\n", data)
 		}
 	}()
-	buf := new(bytes.Buffer)
-	enc := rejson.NewEncoder(buf, rejson.EncodeOptions{})
-
-	dec := cbor.NewDecoder(cbor.DecodeOptions{}, bytes.NewReader(data))
-	err := shared.TokenPump{dec, enc}.Run()
+	genericMap := make(map[string]interface{})
+	err := cbor.Unmarshal(data, &genericMap)
 	if err != nil {
 		return nil, err
 	}
-
-	return buf.Bytes(), nil
+	fmt.Printf("FIXME data: %x\n", data)
+	fmt.Printf("FIXME genericMap: %#v\n", genericMap)
+	bs, err := json.Marshal(genericMap)
+	if err != nil {
+		return nil, err
+	}
+	return bs, nil
 }
 
 var resetPasswordCmd = &cli.Command{
