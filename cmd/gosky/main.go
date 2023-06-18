@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"reflect"
 	"strings"
 	"syscall"
 	"time"
@@ -807,12 +808,15 @@ func cborToJson(data []byte) ([]byte, error) {
 		}
 	}()
 	genericMap := make(map[string]interface{})
-	err := cbor.Unmarshal(data, &genericMap)
+	dm, _ := cbor.DecOptions{
+		// Assumes all map types have string keys in order to allow for JSON
+		// encoding.
+		DefaultMapType: reflect.TypeOf(map[string]interface{}(nil)),
+	}.DecMode()
+	err := dm.Unmarshal(data, &genericMap)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("FIXME data: %x\n", data)
-	fmt.Printf("FIXME genericMap: %#v\n", genericMap)
 	bs, err := json.Marshal(genericMap)
 	if err != nil {
 		return nil, err
