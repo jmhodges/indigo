@@ -4,6 +4,8 @@
 `oauth.ClientApp`
 - represents an overall application or service; helps establish and manage oauth.ClientSession
 - wraps and manages client metadata, client attestation secret (for confidential clients), request and session storage
+- testing with it can be done by overriding ClientApp.Resolver (an oauth.AuthServerResolver)
+
 
 `oauth.ClientSession`
 - represents an established user session, wrapping DPoP key, tokens, and other metadata
@@ -14,8 +16,12 @@
 `oauth.ClientAuthStore`
 - interface for persistent storage systems for auth request and session metadata, including secrets and DPoP private keys
 
-`oauth.Resolver`
-- currently always resolves direct from the network; may add flexible caching or interface abstraction in the future
+-`oauth.Resolver`
+-- currently always resolves direct from the network; may add flexible caching or interface abstraction in the future
+-- implements oauth.AuthServerResolver plus has ResolveClientMetadata for server-side use, not client app use
+
+`oauth.AuthServerResolver`
+- interface for resolving auth server metadata; default implementation is oauth.Resolver
 
 
 ## Implementation Details

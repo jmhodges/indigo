@@ -24,7 +24,7 @@ var jwtExpirationDuration = 30 * time.Second
 // Service-level client. Used to establish and refrsh OAuth sessions, but is not itself account or session specific, and can not be used directly to make API calls on behalf of a user.
 type ClientApp struct {
 	Client   *http.Client
-	Resolver *Resolver
+	Resolver AuthServerResolver
 	Dir      identity.Directory
 	Config   *ClientConfig
 	Store    ClientAuthStore
@@ -51,15 +51,16 @@ type ClientConfig struct {
 
 // Constructs a [ClientApp] based on configuration.
 func NewClientApp(config *ClientConfig, store ClientAuthStore) *ClientApp {
+	resolver := NewResolver()
 	app := &ClientApp{
 		Client:   http.DefaultClient,
-		Resolver: NewResolver(),
+		Resolver: resolver,
 		Dir:      identity.DefaultDirectory(),
 		Config:   config,
 		Store:    store,
 	}
 	if config.UserAgent != "" {
-		app.Resolver.UserAgent = config.UserAgent
+		resolver.UserAgent = config.UserAgent
 
 		// unpack DefaultDirectory nested type and insert UserAgent (and log failure in case default types change)
 		dirAgent := false

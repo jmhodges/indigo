@@ -11,6 +11,16 @@ import (
 	"github.com/bluesky-social/indigo/util/ssrf"
 )
 
+// AuthServerResolver resolves OAuth authorization server URLs and metadata from remote servers.
+// The default implementation is [Resolver], which fetches directly from the network with SSRF protection.
+// Custom implementations can be provided for testing or caching.
+type AuthServerResolver interface {
+	// Resolves a Resource Server URL (eg, PDS) to an Auth Server URL (eg, entryway).
+	ResolveAuthServerURL(ctx context.Context, hostURL string) (string, error)
+	// Resolves an Auth Server URL to its metadata document.
+	ResolveAuthServerMetadata(ctx context.Context, serverURL string) (*AuthServerMetadata, error)
+}
+
 // Helper for resolving OAuth documents from the public web: client metadata, auth server metadata, etc.
 //
 // NOTE: configurable caching will likely be added in the future, but is not implemented yet. This struct may become an interface to support more flexible caching and resolution policies.
@@ -18,6 +28,8 @@ type Resolver struct {
 	Client    *http.Client
 	UserAgent string
 }
+
+var _ AuthServerResolver = (*Resolver)(nil)
 
 func NewResolver() *Resolver {
 	c := http.Client{
